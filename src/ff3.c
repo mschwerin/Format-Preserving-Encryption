@@ -7,7 +7,7 @@
 #include "fpe.h"
 #include "fpe_locl.h"
 
-void rev_bytes(unsigned char X[], int len)
+static void rev_bytes(unsigned char X[], int len)
 {
     int hlen = len >> 1;
     for (int i = 0; i < hlen; ++i) {
@@ -19,7 +19,7 @@ void rev_bytes(unsigned char X[], int len)
 }
 
 // convert numeral string in reverse order to number
-void str2num_rev(BIGNUM *Y, const unsigned int *X, unsigned int radix, unsigned int len, BN_CTX *ctx)
+static void str2num_rev(BIGNUM *Y, const unsigned int *X, unsigned int radix, unsigned int len, BN_CTX *ctx)
 {
     BN_CTX_start(ctx);
     BIGNUM *r = BN_CTX_get(ctx),
@@ -39,7 +39,7 @@ void str2num_rev(BIGNUM *Y, const unsigned int *X, unsigned int radix, unsigned 
 }
 
 // convert number to numeral string in reverse order
-void num2str_rev(const BIGNUM *X, unsigned int *Y, unsigned int radix, int len, BN_CTX *ctx)
+static void num2str_rev(const BIGNUM *X, unsigned int *Y, unsigned int radix, int len, BN_CTX *ctx)
 {
     BN_CTX_start(ctx);
     BIGNUM *dv = BN_CTX_get(ctx),
@@ -64,7 +64,7 @@ void num2str_rev(const BIGNUM *X, unsigned int *Y, unsigned int radix, int len, 
     return;
 }
 
-void FF3_encrypt(unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx, const unsigned char *tweak, unsigned int radix, unsigned int inlen)
+static void FF3_encrypt(unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx, const unsigned char *tweak, unsigned int radix, unsigned int inlen)
 {
     BIGNUM *bnum = BN_new(),
            *y = BN_new(),
@@ -138,7 +138,7 @@ void FF3_encrypt(unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx, cons
     return;
 }
 
-void FF3_decrypt(unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx, const unsigned char *tweak, unsigned int radix, unsigned int inlen)
+static void FF3_decrypt(unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx, const unsigned char *tweak, unsigned int radix, unsigned int inlen)
 {
     BIGNUM *bnum = BN_new(),
            *y = BN_new(),

@@ -4,33 +4,33 @@
 #include <string.h>
 #include <fpe.h>
 
-void hex2chars(unsigned char hex[], unsigned char result[])
+static void hex2chars(unsigned char hex[], unsigned char result[])
 {
-    int len = strlen(hex);
+    size_t len = strlen((char *) hex);
     unsigned char temp[3];
     temp[2] = 0x00;
 
-    int j = 0;
-    for (int i = 0; i < len; i += 2) {
+    size_t j = 0;
+    for (size_t i = 0; i < len; i += 2) {
         temp[0] = hex[i];
         temp[1] = hex[i + 1];
-        result[j] = (char)strtol(temp, NULL, 16);
+        result[j] = (unsigned char)strtol((char *) temp, NULL, 16);
         ++j;
     }
 }
 
-void map_chars(unsigned char str[], unsigned int result[])
+static void map_chars(unsigned char str[], unsigned int result[])
 {
-    int len = strlen(str);
+    size_t len = strlen((char *) str);
 
-    for (int i = 0; i < len; ++i)
+    for (size_t i = 0; i < len; ++i)
         if (str[i] >= 'a')
             result[i] = str[i] - 'a' + 10;
         else
             result[i] = str[i] - '0';
 }
 
-void inverse_map_chars(unsigned result[], unsigned char str[], int len)
+static void inverse_map_chars(unsigned result[], unsigned char str[], int len)
 {
     for (int i = 0; i < len; ++i)
         if (result[i] < 10)
@@ -51,42 +51,41 @@ int main(int argc, char *argv[])
     unsigned char k[100],
                   t[100],
                   result[100];
-    int xlen = strlen(argv[4]),
+    size_t xlen = strlen(argv[4]),
         klen = strlen(argv[1]) / 2,
-        tlen = strlen(argv[2]) / 2,
-        radix = atoi(argv[3]);
+        tlen = strlen(argv[2]) / 2;
+    unsigned int radix = (unsigned int) atoi(argv[3]);
     unsigned int x[100],
                  y[xlen];
-    unsigned int tmp;
 
-    hex2chars(argv[1], k);
-    hex2chars(argv[2], t);
-    map_chars(argv[4], x);
+    hex2chars((unsigned char *) argv[1], k);
+    hex2chars((unsigned char *) argv[2], t);
+    map_chars((unsigned char *) argv[4], x);
 
-    for (int i = 0; i < xlen; ++i)
+    for (size_t i = 0; i < xlen; ++i)
         assert(x[i] < radix);
 
     FPE_KEY ff1, ff3;
 
     printf("key:");
-    for (int i = 0; i < klen; ++i)    printf(" %02x", k[i]);
+    for (size_t i = 0; i < klen; ++i)    printf(" %02x", k[i]);
     puts("");
     if (tlen)    printf("tweak:");
-    for (int i = 0; i < tlen; ++i)    printf(" %02x", t[i]);
+    for (size_t i = 0; i < tlen; ++i)    printf(" %02x", t[i]);
     if (tlen)    puts("");
 
     FPE_set_ff1_key(k, klen * 8, t, tlen, radix, &ff1);
     FPE_set_ff3_key(k, klen * 8, t, radix, &ff3);
 
     printf("after map: ");
-    for (int i = 0; i < xlen; ++i)    printf(" %d", x[i]);
+    for (size_t i = 0; i < xlen; ++i)    printf(" %d", x[i]);
     printf("\n\n");
 
     printf("========== FF1 ==========\n");
     FPE_ff1_encrypt(x, y, xlen, &ff1, FPE_ENCRYPT);
 
     printf("ciphertext(numeral string):");
-    for (int i = 0; i < xlen; ++i)    printf(" %d", y[i]);
+    for (size_t i = 0; i < xlen; ++i)    printf(" %d", y[i]);
     printf("\n");
 
     inverse_map_chars(y, result, xlen);
@@ -96,14 +95,14 @@ int main(int argc, char *argv[])
     FPE_ff1_encrypt(y, x, xlen, &ff1, FPE_DECRYPT);
 
     printf("plaintext:");
-    for (int i = 0; i < xlen; ++i)    printf(" %d", x[i]);
+    for (size_t i = 0; i < xlen; ++i)    printf(" %d", x[i]);
     printf("\n\n");
 
     printf("========== FF3 ==========\n");
     FPE_ff3_encrypt(x, y, xlen, &ff3, FPE_ENCRYPT);
 
     printf("ciphertext(numeral string):");
-    for (int i = 0; i < xlen; ++i)    printf(" %d", y[i]);
+    for (size_t i = 0; i < xlen; ++i)    printf(" %d", y[i]);
     printf("\n");
 
     inverse_map_chars(y, result, xlen);
@@ -113,7 +112,7 @@ int main(int argc, char *argv[])
     FPE_ff3_encrypt(y, x, xlen, &ff3, FPE_DECRYPT);
 
     printf("plaintext:");
-    for (int i = 0; i < xlen; ++i)    printf(" %d", x[i]);
+    for (size_t i = 0; i < xlen; ++i)    printf(" %d", x[i]);
     printf("\n");
 
     FPE_unset_ff1_key(&ff1);

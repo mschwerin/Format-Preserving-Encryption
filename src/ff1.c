@@ -9,7 +9,7 @@
 #include "fpe_locl.h"
 
 // convert numeral string to number
-void str2num(BIGNUM *Y, const unsigned int *X, unsigned long long radix, unsigned int len, BN_CTX *ctx)
+static void str2num(BIGNUM *Y, const unsigned int *X, unsigned long long radix, unsigned int len, BN_CTX *ctx)
 {
     BN_CTX_start(ctx);
     BIGNUM *r = BN_CTX_get(ctx),
@@ -17,7 +17,7 @@ void str2num(BIGNUM *Y, const unsigned int *X, unsigned long long radix, unsigne
 
     BN_set_word(Y, 0);
     BN_set_word(r, radix);
-    for (int i = 0; i < len; ++i) {
+    for (unsigned int i = 0; i < len; ++i) {
         // Y = Y * radix + X[i]
         BN_set_word(x, X[i]);
         BN_mul(Y, Y, r, ctx);
@@ -29,7 +29,7 @@ void str2num(BIGNUM *Y, const unsigned int *X, unsigned long long radix, unsigne
 }
 
 // convert number to numeral string
-void num2str(const BIGNUM *X, unsigned int *Y, unsigned int radix, int len, BN_CTX *ctx)
+static void num2str(const BIGNUM *X, unsigned int *Y, unsigned int radix, int len, BN_CTX *ctx)
 {
     BN_CTX_start(ctx);
     BIGNUM *dv = BN_CTX_get(ctx),
@@ -54,7 +54,7 @@ void num2str(const BIGNUM *X, unsigned int *Y, unsigned int radix, int len, BN_C
     return;
 }
 
-void FF1_encrypt(const unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx, const unsigned char *tweak, const unsigned int radix, size_t inlen, size_t tweaklen)
+static void FF1_encrypt(const unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx, const unsigned char *tweak, const unsigned int radix, size_t inlen, size_t tweaklen)
 {
     BIGNUM *bnum = BN_new(),
            *y = BN_new(),
@@ -80,7 +80,7 @@ void FF1_encrypt(const unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx
     const int d = 4 * ceil2(b, 2) + 4;
 
     int pad = ( (-tweaklen - b - 1) % 16 + 16 ) % 16;
-    int Qlen = tweaklen + pad + 1 + b;
+    size_t Qlen = tweaklen + pad + 1 + b;
     unsigned char P[16];
     unsigned char *Q = (unsigned char *)OPENSSL_malloc(Qlen), *Bytes = (unsigned char *)OPENSSL_malloc(b);
 
@@ -198,7 +198,7 @@ void FF1_encrypt(const unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx
     return;
 }
 
-void FF1_decrypt(const unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx, const unsigned char *tweak, const unsigned int radix, size_t inlen, size_t tweaklen)
+static void FF1_decrypt(const unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx, const unsigned char *tweak, const unsigned int radix, size_t inlen, size_t tweaklen)
 {
     BIGNUM *bnum = BN_new(),
            *y = BN_new(),
@@ -224,7 +224,7 @@ void FF1_decrypt(const unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx
     const int d = 4 * ceil2(b, 2) + 4;
 
     int pad = ( (-tweaklen - b - 1) % 16 + 16 ) % 16;
-    int Qlen = tweaklen + pad + 1 + b;
+    size_t Qlen = tweaklen + pad + 1 + b;
     unsigned char P[16];
     unsigned char *Q = (unsigned char *)OPENSSL_malloc(Qlen), *Bytes = (unsigned char *)OPENSSL_malloc(b);
     // initialize P
@@ -255,7 +255,7 @@ void FF1_decrypt(const unsigned int *in, unsigned int *out, AES_KEY *aes_enc_ctx
     // initialize Q
     memcpy(Q, tweak, tweaklen);
     memset(Q + tweaklen, 0x00, pad);
-    assert(tweaklen + pad - 1 <= Qlen);
+    assert((size_t) (tweaklen + pad - 1) <= Qlen);
 
     unsigned char R[16];
     int cnt = ceil2(d, 4) - 1;
